@@ -1,0 +1,49 @@
+const express = require('express');
+const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer');
+
+const app = express();
+const port = 3000;
+
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
+
+// Serve the HTML form
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
+// Handle form submission
+app.post('/send-letter', (req, res) => {
+    const { sender, recipient, subject, message } = req.body;
+    
+    // Create a transporter object using SMTP transport
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'your-email@gmail.com',
+            pass: 'your-email-password'
+        }
+    });
+    
+    // Set up email data
+    const mailOptions = {
+        from: sender,
+        to: recipient,
+        subject: subject,
+        text: message
+    };
+    
+    // Send mail with defined transport object
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            return res.status(500).send('Error sending email: ' + error.message);
+        }
+        res.send('Email sent: ' + info.response);
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server running at http://localhost:${port}/`);
+});
+          
